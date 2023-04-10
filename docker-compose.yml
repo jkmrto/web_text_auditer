@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:14
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: "web_text_auditer_dev"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pwd"
+    volumes:
+      - ./docker/volumnes/db:/var/lib/postgresql
