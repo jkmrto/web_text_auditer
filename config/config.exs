@@ -7,9 +7,6 @@
 # General application configuration
 import Config
 
-config :web_text_auditer,
-  ecto_repos: [WebTextAuditer.Repo]
-
 # Configures the endpoint
 config :web_text_auditer, WebTextAuditerWeb.Endpoint,
   url: [host: "localhost"],

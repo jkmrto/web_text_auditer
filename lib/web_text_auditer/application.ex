@@ -10,8 +10,6 @@ defmodule WebTextAuditer.Application do
     children = [
       # Start the Telemetry supervisor
       WebTextAuditerWeb.Telemetry,
-      # Start the Ecto repository
-      WebTextAuditer.Repo,
       # Start the PubSub system
       {Phoenix.PubSub, name: WebTextAuditer.PubSub},
       # Start the Endpoint (http/https)

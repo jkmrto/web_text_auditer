@@ -1,6 +1,4 @@
 defmodule WebTextAuditer.Pages do
-  @url "https://chatgpt-api.shn.hk/v1/"
-
   def audit(webpage_url) do
     webpage_url
     |> HTTPoison.get!()
