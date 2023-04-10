@@ -17,7 +17,7 @@ defmodule WebTextAuditerWeb.Router do
   scope "/", WebTextAuditerWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", Live.HomeLive
   end
 
   # Other scopes may use custom stacks.

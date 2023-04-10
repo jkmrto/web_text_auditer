@@ -1,6 +1,8 @@
 defmodule WebTextAuditer.ChatGPT.Stub do
   @behaviour WebTextAuditer.ChatGPT.Client
-  @word "stub"
 
-  def request(_text), do: "stub"
+  def request(_text) do
+    :timer.sleep(2_000)
+    "stub"
+  end
 end
