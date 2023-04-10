@@ -4,6 +4,7 @@
 
 defmodule WebTextAuditerWeb.PageController do
   use WebTextAuditerWeb, :controller
+  @chat_gpt_client WebTextAuditer.ChatGPT.Stub 
 
   @task_timeout 60_000
 
@@ -19,13 +20,13 @@ defmodule WebTextAuditerWeb.PageController do
       texts
       |> Enum.map(fn text ->
         Task.async(fn ->
-          audited_text = WebTextAuditer.Pages.request(text)
+          audited_text = @chat_gpt_client.request(text)
           %{original: text, audited: audited_text}
         end)
       end)
       |> Enum.map(fn task -> Task.await(task, @task_timeout) end)
 
-    render(conn, :home, audited_texts: audited_texts, layout: false)
+    render(conn, :home, audited_texts: audited_texts)
   end
 end
 
