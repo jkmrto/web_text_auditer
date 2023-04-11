@@ -54,8 +54,6 @@ defmodule WebTextAuditerWeb.Live.HomeLive do
   end
 
   def handle_event("audit", %{"webpage" => webpage}, socket) do
-    IO.inspect("Audit request for #{webpage} has been received")
-
     Task.async(fn -> async_audit(webpage, self()) end)
 
     {:noreply, assign(socket, show_spinner: true)}

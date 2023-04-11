@@ -1,6 +1,12 @@
 defmodule WebTextAuditerWeb.Router do
   use WebTextAuditerWeb, :router
 
+  defp auth(conn, _opts) do
+    username = Application.get_env(:web_text_auditer, BasicAuth)[:user]
+    password = Application.get_env(:web_text_auditer, BasicAuth)[:secret]
+    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
+  end
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -8,6 +14,7 @@ defmodule WebTextAuditerWeb.Router do
     plug :put_root_layout, {WebTextAuditerWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :auth
   end
 
   pipeline :api do
