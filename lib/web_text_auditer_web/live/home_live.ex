@@ -1,7 +1,7 @@
 defmodule WebTextAuditerWeb.Live.HomeLive do
   use WebTextAuditerWeb, :live_view
 
-  #@chat_gpt_client WebTextAuditer.ChatGPT.Stub
+  # @chat_gpt_client WebTextAuditer.ChatGPT.Stub
   @chat_gpt_client WebTextAuditer.ChatGPT.Api
   @task_timeout 60_000
 
@@ -27,10 +27,10 @@ defmodule WebTextAuditerWeb.Live.HomeLive do
     {:noreply, assign(socket, show_spinner: true, audited_texts: texts_container)}
   end
 
-  def handle_info({:audit_results, {pos, audited_text}}, socket) do
-    texts_container = socket.assigns.audited_texts
-    IO.inspect(texts_container, label: "texts_container")
-    IO.inspect({:audit_results, {pos, audited_text}}, label: "message")
+  def handle_info(
+        {:audit_results, {pos, audited_text}},
+        socket = %{assigns: %{audited_texts: texts_container}}
+      ) do
 
     text_container = Map.get(texts_container, pos)
     text_container = %{text_container | audited: audited_text}
@@ -42,27 +42,21 @@ defmodule WebTextAuditerWeb.Live.HomeLive do
     {:noreply, socket}
   end
 
-  def handle_info({_ref, message}, socket) do
-    IO.inspect(self(), label: "we receive the message here")
-    IO.inspect(message, label: "this is lost here")
+  def handle_info({_ref, _message}, socket) do
     {:noreply, socket}
   end
 
   def async_audit(texts_container, results_receiver) do
     texts_container
     |> Enum.each(fn {pos, %{original: original_text}} ->
-      # task = Task.async(fn ->
-      audited_text = @chat_gpt_client.request(original_text)
-      send(results_receiver, {:audit_results, {pos, audited_text}})
-      # IO.inspect({:audit_results, {pos, audited_text}})
-      # IO.inspect(results_receiver, label: "this is the result receiver")
-      # end)
+      Task.async(fn ->
+        audited_text = @chat_gpt_client.request(original_text)
+        send(results_receiver, {:audit_results, {pos, audited_text}})
+      end)
     end)
   end
 
   def spinner(assigns) do
-    IO.inspect("hello hello")
-
     ~H"""
     <div
       class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
