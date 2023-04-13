@@ -3,6 +3,8 @@ defmodule WebTextAuditer.ChatGPT.Api do
 
   @url "https://chatgpt-api.shn.hk/v1/"
 
+  require Logger
+
   def request(text) do
     headers = [
       {"Content-Type", "application/json"},
@@ -22,14 +24,19 @@ defmodule WebTextAuditer.ChatGPT.Api do
 
     resp = HTTPoison.post(@url, Jason.encode!(body), headers, recv_timeout: 60_000)
 
-    {:ok, %HTTPoison.Response{status_code: 200, body: resp_body}} = resp
+    case resp do
+      {:ok, %HTTPoison.Response{status_code: 200, body: resp_body}} ->
+        resp_body
+        |> Jason.decode!()
+        |> Map.get("choices")
+        |> List.first()
+        |> Map.get("message")
+        |> Map.get("content")
 
-    resp_body
-    |> Jason.decode!()
-    |> Map.get("choices")
-    |> List.first()
-    |> Map.get("message")
-    |> Map.get("content")
+      msg ->
+        Logger.error("#{inspect(msg)}")
+        "Error getting the response. Please retry"
+    end
   end
 
   defp chatgpt_api_key, do: Application.get_env(:web_text_auditer, :chatgpt)[:api_key]

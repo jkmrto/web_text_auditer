@@ -1,0 +1,32 @@
+<.form
+  class="p-5 mx-10 mb-10 w-10/12 border border-gray-400 rounded-lg"
+  for={@form}
+  phx-submit="audit"
+>
+  <div class="ml-5 flex flex-row">
+    <.input name="webpage" type="text" value={@form[:webpage]} field={@form[:webpage]} />
+    <button class="mx-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+      Audit
+    </button>
+  </div>
+</.form>
+
+<div>
+  <%= for {_pos, audited_text}  <- @audited_texts do %>
+    <div class="m-3 flex flex-row border border-gray-100">
+      <p class="p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        <%= audited_text.original %>
+      </p>
+
+      <%= if audited_text.audited do %>
+        <p class="ml-3 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-400 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+          <%= audited_text.audited %>
+        </p>
+      <% else %>
+        <div class="w-full flex justify-center align-items-center">
+          <.spinner />
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
