@@ -31,11 +31,10 @@ defmodule WebTextAuditerWeb.Live.HomeLive do
         {:audit_results, {pos, audited_text}},
         socket = %{assigns: %{audited_texts: texts_container}}
       ) do
-
     text_container = Map.get(texts_container, pos)
     text_container = %{text_container | audited: audited_text}
     texts_container = Map.put(texts_container, pos, text_container)
-    {:noreply, assign(socket, audited_texts: texts_container, show_spinner: false)}
+    {:noreply, assign(socket, audited_texts: texts_container)}
   end
 
   def handle_info({:DOWN, _ref, :process, _pid, :normal}, socket) do

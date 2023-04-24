@@ -13,9 +13,8 @@ defmodule WebTextAuditer.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: WebTextAuditer.PubSub},
       # Start the Endpoint (http/https)
-      WebTextAuditerWeb.Endpoint
-      # Start a worker by calling: WebTextAuditer.Worker.start_link(arg)
-      # {WebTextAuditer.Worker, arg}
+      WebTextAuditerWeb.Endpoint,
+      WebTextAuditer.RequestRateLimiter
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
