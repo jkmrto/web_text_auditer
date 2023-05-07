@@ -35,18 +35,19 @@ defmodule WebTextAuditer.RequestRateLimiter do
   def handle_info(:new_token, state = %{queue: queue}) do
     schedule_new_token()
 
-    if :queue.is_empty(queue) do
-      {:noreply, increase_tokens(state)}
-    else
-      {{:value, text_analysis_container}, queue} = :queue.out(queue)
-      async_text_analysis(text_analysis_container)
-      {:noreply, %{state | queue: queue}}
+    case :queue.out(queue) do
+      {:empty, _queue} ->
+        {:noreply, increase_tokens(state)}
+
+      {{:value, text_analysis_container}, queue} ->
+        async_text_analysis(text_analysis_container)
+        {:noreply, %{state | queue: queue}}
     end
   end
 
   @impl true
   def handle_info(random, state) do
-    Logger.info("#{__MODULE__} Unexpected message #{inspect random}")
+    Logger.info("#{__MODULE__} Unexpected message #{inspect(random)}")
     {:noreply, state}
   end
 
