@@ -31,9 +31,7 @@ defmodule WebTextAuditerWeb.Live.HomeLive do
         {:audit_results, {pos, audited_text}},
         socket = %{assigns: %{audited_texts: texts_container}}
       ) do
-    text_container = Map.get(texts_container, pos)
-    text_container = %{text_container | audited: audited_text}
-    texts_container = Map.put(texts_container, pos, text_container)
+    texts_container = update_texts_container(texts_container, {pos, audited_text})
     {:noreply, assign(socket, audited_texts: texts_container)}
   end
 
@@ -45,13 +43,18 @@ defmodule WebTextAuditerWeb.Live.HomeLive do
     {:noreply, socket}
   end
 
-  def async_audit(texts_container, results_receiver) do
-    texts_container
-    |> Enum.each(fn {pos, %{original: original_text}} ->
-      Task.async(fn ->
-        audited_text = @chat_gpt_client.request(original_text)
-        send(results_receiver, {:audit_results, {pos, audited_text}})
-      end)
+  defp update_texts_container(texts_container, {pos, audited_text}) do
+    text_container = Map.get(texts_container, pos)
+    text_container = %{text_container | audited: audited_text}
+    Map.put(texts_container, pos, text_container)
+  end
+
+  defp async_audit(texts_container, results_receiver) do
+    Enum.each(texts_container, fn {pos, texts = %{original: _original_text}} ->
+      GenServer.cast(
+        WebTextAuditer.RequestRateLimiter,
+        {:new_request, {results_receiver, pos, texts}}
+      )
     end)
   end
 

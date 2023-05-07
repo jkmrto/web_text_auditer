@@ -2,6 +2,9 @@ defmodule WebTextAuditer.RequestRateLimiter do
   use GenServer
 
   @new_token_time_sec 20_000
+  @chat_gpt_client WebTextAuditer.ChatGPT.Api
+
+  require Logger
 
   def start_link(args \\ []) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -16,12 +19,15 @@ defmodule WebTextAuditer.RequestRateLimiter do
   end
 
   @impl true
-  def handle_cast({:new_request, element}, state = %{queue: queue, tokens: tokens}) do
+  def handle_cast(
+        {:new_request, text_analysis_container},
+        state = %{queue: queue, tokens: tokens}
+      ) do
     if tokens > 0 do
-      IO.inspect(element, label: "this is consumed !!!")
+      async_text_analysis(text_analysis_container)
       {:noreply, %{state | tokens: tokens - 1}}
     else
-      {:noreply, %{state | queue: :queue.in(element, queue)}}
+      {:noreply, %{state | queue: :queue.in(text_analysis_container, queue)}}
     end
   end
 
@@ -32,10 +38,16 @@ defmodule WebTextAuditer.RequestRateLimiter do
     if :queue.is_empty(queue) do
       {:noreply, increase_tokens(state)}
     else
-      {element, queue} = :queue.out(queue)
-      IO.inspect(element, label: "this is consumed !!!")
+      {{:value, text_analysis_container}, queue} = :queue.out(queue)
+      async_text_analysis(text_analysis_container)
       {:noreply, %{state | queue: queue}}
     end
+  end
+
+  @impl true
+  def handle_info(random, state) do
+    Logger.info("#{__MODULE__} Unexpected message #{inspect random}")
+    {:noreply, state}
   end
 
   defp increase_tokens(state = %{tokens: 3}), do: state
@@ -43,4 +55,11 @@ defmodule WebTextAuditer.RequestRateLimiter do
 
   defp schedule_new_token(),
     do: Process.send_after(self(), :new_token, @new_token_time_sec)
+
+  def async_text_analysis({results_receiver, pos, _texts = %{original: original_text}}) do
+    Task.async(fn ->
+      audited_text = @chat_gpt_client.request(original_text)
+      send(results_receiver, {:audit_results, {pos, audited_text}})
+    end)
+  end
 end
